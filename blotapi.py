@@ -5,13 +5,13 @@ import numpy as np
 import random
 import json
 
-app = FastAPI()
-modal_app = modal.App()
+fastapi_app = FastAPI()
+app = modal.App(name="bloptimiser")
 
 def calculateDistance(p1, p2):
     return np.sqrt((p1[0]-p2[0])**2 + (p1[1]-p2[1])**2)
 
-@app.get("/")
+@fastapi_app.get("/")
 def read_root(sets: str=""):
     if sets == "":
         return {"error": "emptySet"}
@@ -58,7 +58,7 @@ def read_root(sets: str=""):
 
     return {"sets": sorted_sets}
 
-@modal_app.function(
+@app.function(
     image=modal.Image.debian_slim().pip_install("fastapi", "numpy"),
 )
 @modal.asgi_app()

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useRef, useEffect } from 'react';
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,7 @@ export default function PolylineDrawer() {
   const [isAnimating, setIsAnimating] = useState(false);
   const [lastDrawnIndex, setLastDrawnIndex] = useState(0);
   const [dimensions, setDimensions] = useState({ width: window.innerWidth, height: window.innerHeight });
+  const [isOptimizing, setIsOptimizing] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {
@@ -137,6 +139,35 @@ export default function PolylineDrawer() {
     }
   }, [sliderValue, polylines]);
 
+  const optimizePolylines = async () => {
+    setIsOptimizing(true);
+    try {
+      const response = await fetch(
+        `https://m0hid--blotapi-fastapi-app.modal.run/?sets=${encodeURIComponent(input)}`, 
+        {
+          method: 'GET',
+          mode: 'cors',
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*'
+          }
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setInput(JSON.stringify(data.sets, null, 2));
+    } catch (error) {
+      console.error('Optimization failed:', error);
+      alert('Failed to optimize polylines. Please check console for details.');
+    } finally {
+      setIsOptimizing(false);
+    }
+  };
+
   return (
     <div className="flex flex-col min-h-screen p-4 space-y-4 lg:flex-row lg:space-y-0 lg:space-x-4">
       <div className="w-full lg:w-4/5 aspect-square">
@@ -147,14 +178,36 @@ export default function PolylineDrawer() {
           className="border border-gray-300"
         />
       </div>
-      <div className="flex-col space-y-4">
+      <div className="flex flex-col w-full space-y-4 lg:w-1/5">
         <Textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Paste your array of arrays here..."
-          className="w-full max-w-md"
+          className="w-full h-48"
         />
-        <Button onClick={parseInput} disabled={isAnimating}>Draw Polylines</Button>
+        <div className="flex gap-2">
+          <Button 
+            onClick={parseInput} 
+            disabled={isAnimating || isOptimizing}
+            className="w-full"
+          >
+            Draw Polylines
+          </Button>
+          <Button 
+            onClick={optimizePolylines}
+            disabled={!input || isOptimizing}
+            className="relative w-full"
+          >
+            {isOptimizing ? (
+              <div className="absolute inset-0 bg-white/20">
+                <div 
+                  className="absolute bottom-0 h-1 transition-all duration-300 bg-white"
+                  style={{ width: '100%', animation: 'progress 2s infinite linear' }}
+                />
+              </div>
+            ) : 'Optimize'}
+          </Button>
+        </div>
         <Slider
           value={sliderValue}
           onValueChange={(value) => {
@@ -172,8 +225,13 @@ export default function PolylineDrawer() {
           className="w-full max-w-md"
         />
         <div>Showing {sliderValue[0]} out of {polylines.length} polylines</div>
-        <Button onClick={parseInput}>Optimise</Button>
       </div>
+      <style>{`
+        @keyframes progress {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
+      `}</style>
     </div>
   );
 }
