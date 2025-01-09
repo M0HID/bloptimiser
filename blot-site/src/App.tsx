@@ -13,7 +13,6 @@ export default function PolylineDrawer() {
   const [isAnimating, setIsAnimating] = useState(false);
   const [lastDrawnIndex, setLastDrawnIndex] = useState(0);
   const [dimensions, setDimensions] = useState({ width: window.innerWidth, height: window.innerHeight });
-  const [isOptimizing, setIsOptimizing] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {
@@ -139,35 +138,6 @@ export default function PolylineDrawer() {
     }
   }, [sliderValue, polylines]);
 
-  const optimizePolylines = async () => {
-    setIsOptimizing(true);
-    try {
-      const response = await fetch(
-        `https://m0hid--blotapi-fastapi-app.modal.run/?sets=${encodeURIComponent(input)}`, 
-        {
-          method: 'GET',
-          mode: 'cors',
-          headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*'
-          }
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      setInput(JSON.stringify(data.sets, null, 2));
-    } catch (error) {
-      console.error('Optimization failed:', error);
-      alert('Failed to optimize polylines. Please check console for details.');
-    } finally {
-      setIsOptimizing(false);
-    }
-  };
-
   return (
     <div className="flex flex-col min-h-screen p-4 space-y-4 lg:flex-row lg:space-y-0 lg:space-x-4">
       <div className="w-full lg:w-4/5 aspect-square">
@@ -188,24 +158,10 @@ export default function PolylineDrawer() {
         <div className="flex gap-2">
           <Button 
             onClick={parseInput} 
-            disabled={isAnimating || isOptimizing}
+            disabled={isAnimating}
             className="w-full"
           >
             Draw Polylines
-          </Button>
-          <Button 
-            onClick={optimizePolylines}
-            disabled={!input || isOptimizing}
-            className="relative w-full"
-          >
-            {isOptimizing ? (
-              <div className="absolute inset-0 bg-white/20">
-                <div 
-                  className="absolute bottom-0 h-1 transition-all duration-300 bg-white"
-                  style={{ width: '100%', animation: 'progress 2s infinite linear' }}
-                />
-              </div>
-            ) : 'Optimize'}
           </Button>
         </div>
         <Slider
