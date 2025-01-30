@@ -4,7 +4,9 @@ This is my owm implementation of the Blot (https://hackclub.com/blot) viewer in 
 Try it out at https://blot-site.vercel.app!!
 
 ## Usage
-- Paste your array of polylines into the box
+- Paste your array of polylines into the box (Must be in the correct format!!)
+  - Format:
+  - [[[0,0],[1,0],[1,1],[0,1]],[[0,0],[1,0],[1,1],[0,1]]] etc. (coordinates inside polylines inside big array)
 - press 'Draw Polylines'!
 - Scroll through the bar to see where the pen while move to
   
